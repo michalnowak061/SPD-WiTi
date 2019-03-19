@@ -14,52 +14,12 @@
 
 using namespace std;
 
-int dlugosc_uszeregowania(int etykieta, int P[]) {
-	int pom = -1; // zmienna do znajdowania najwiêkszej liczby
-	int c = 0;
-
-	while (pow(2, pom + 1) <= etykieta)
-		pom++; // mamy najwiêksz¹ dostêpna potêgê 2 w danym wywo³aniu
-
-	for (int i = pom; i >= 0; i--) {
-
-		if (etykieta >= pow(2, i)) {
-			c += P[i];
-			etykieta = etykieta - pow(2, i);
-		}
-
-	}
-
-	return c;
-}
-
-int rekurencja(int etykieta, int N, int glebokosc, int P[], int W[], int D[]) {
-
-	if (glebokosc == 0) {
-		cout << " koniec !!!!!!!!!!!!!" << endl;
-		return 0;
-	}
-	int maska = etykieta;
-	int pom = -1; // zmienna do znajdowania najwiêkszej liczby
-
-	for (int i = 0; i < glebokosc; i++) {
-		while (pow(2, pom + 1) <= maska)
-			pom++; // mamy najwiêksz¹ dostêpna potêgê 2 w danym wywo³aniu
-		rekurencja(etykieta - pow(2, pom), N, glebokosc - 1, P, W, D);
-		maska = maska - pow(2, pom);
-		pom = 0;
-	}
-
-	return 0;
-}
-
 int main(int argc, char *argv[]) {
-	int N = 0; // Liczba danych
+
+	int n = 0; // Liczba danych
 	int P[100], W[100], D[100]; //Wprowadzone dane
-//int C = 0,
-	int S_witi = 0;
-	int etykieta = 0;
-//int K[100]; //kolejnosc zadan
+
+int Kolejnosc[100]; //kolejnosc zadan
 	string s;
 
 	ifstream data("witi.data.txt");
@@ -68,24 +28,66 @@ int main(int argc, char *argv[]) {
 		data >> s;
 	}
 
-	data >> N;
+	data >> n;
 
-	for (int i = 0; i < N; i++) {
+	// wczytywanie danych
+	for (int i = 0; i < n; i++){
 		data >> P[i] >> W[i] >> D[i];
+		Kolejnosc[i] = i;
 	}
 
-// liczymy sumê zamieniamy na 2^x
-	for (int i = 0; i < N; i++) {
-		etykieta += pow(2, i);
+	int N = pow(2,n);
+	int *F = new int[N];
+	int *C = new int[N];
+	F[0] = 0;
+
+	for (int SET = 1; SET < N; SET++) {
+		C[SET] = 0;
+		for( int i = 0, b = 1; i<n; i++, b*=2) if(SET&b) C[SET]+=P[i];  // Liczymy c dla danego zbioru
+		F[SET] = 999999;
+		for( int i = 0, b = 1; i<n; i++, b*=2) if(SET&b) {
+			F[SET] = min(F[SET],F[SET-b] + W[i] * max(0, C[SET] - D[i]));
+		//	cout << "to wynosi : " << F[SET] << endl;
+		}
+
 	}
 
-//S_witi = rekurencja(etykieta, N,N, P, W, D );
+	int minimum;
+	int indeks = 0;
+	int SET = pow(2,n)- 1;
+
+ 	for(int k=0; k < n; k++){
+		minimum = 999999;
+		for( int i = 0, b = 1; i<n; i++, b*=2) if(SET&b){
+			int M_PAST = minimum;
+			minimum = min(minimum ,F[SET-b] + W[i]*max(0,C[SET]-D[i]));
+			if(M_PAST>minimum){
+				indeks = i;
+				cout << " :: " << k << " "<< F[SET-b]  << endl;
+			}
+		}
+
+		SET = SET - pow(2,indeks);
+
+		Kolejnosc[k] = indeks;
 
 
-	cout << " etykietka : " << etykieta << endl;
-	cout << " S_witi : " << S_witi << endl;
+	}
 
-	system("pause");
+
+
+	int p = pow(2,n) - 1;
+	cout << " Suma witi :"  << F[p];
+	cout << " Kolejnosc to: ";
+	for( int i =0; i <n; i++){
+		cout << Kolejnosc[i] + 1 << "  ";
+	}
+
+
+
+
+
+//	system("pause");
 	return 0;
 
 }
